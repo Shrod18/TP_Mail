@@ -9,41 +9,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await response.json();
     let emails = data.addresses;
 
-    // Fonction pour extraire les serveurs mail uniques
-    function getEmailProviders(emails) {
-        const providers = {};
-        emails.forEach(email => {
-            const domain = email.split("@")[1];
-            providers[domain] = (providers[domain] || 0) + 1;
-        });
-        return Object.keys(providers);
-    }
-
-    // Générer les checkboxes pour chaque serveur
-    function createProviderCheckboxes(providers) {
-        filterContainer.innerHTML = ""; // Réinitialiser
-
-        providers.forEach(provider => {
-            const label = document.createElement("label");
-            label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="${provider}" checked> ${provider}`;
-            filterContainer.appendChild(label);
-            filterContainer.appendChild(document.createElement("br"));
-        });
-    }
-
-    // Fonction pour afficher les emails filtrés
-    function displayEmails(filteredEmails) {
-        emailList.innerHTML = "";
-        filteredEmails.forEach(email => {
-            const li = document.createElement("li");
-            li.textContent = email;
-            emailList.appendChild(li);
-        });
-    }
-
     // Fonction pour compter les occurrences des serveurs mail et regrouper les petits sous "Other"
     function countEmailProviders(emails) {
         const providerCounts = {};
+        let otherDomains = [];
         let otherCount = 0;
 
         // Comptage des occurrences
@@ -59,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 filteredCounts[domain] = providerCounts[domain];
             } else {
                 otherCount += providerCounts[domain];
+                otherDomains.push(domain);
             }
         });
 
@@ -66,7 +36,39 @@ document.addEventListener("DOMContentLoaded", async () => {
             filteredCounts["Other"] = otherCount;
         }
 
-        return filteredCounts;
+        return { counts: filteredCounts, otherDomains: otherDomains };
+    }
+
+    // Générer les checkboxes pour chaque serveur
+    function createProviderCheckboxes(emailData) {
+        filterContainer.innerHTML = ""; // Réinitialiser
+
+        const { counts, otherDomains } = countEmailProviders(emailData);
+
+        Object.keys(counts).forEach(provider => {
+            const label = document.createElement("label");
+            label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="${provider}" checked> ${provider}`;
+            filterContainer.appendChild(label);
+            filterContainer.appendChild(document.createElement("br"));
+        });
+
+        // Ajout de la checkbox "Other" si nécessaire
+        if (otherDomains.length > 0) {
+            const label = document.createElement("label");
+            label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="Other" checked> Other`;
+            filterContainer.appendChild(label);
+            filterContainer.appendChild(document.createElement("br"));
+        }
+    }
+
+    // Fonction pour afficher les emails filtrés
+    function displayEmails(filteredEmails) {
+        emailList.innerHTML = "";
+        filteredEmails.forEach(email => {
+            const li = document.createElement("li");
+            li.textContent = email;
+            emailList.appendChild(li);
+        });
     }
 
     // Fonction pour générer le graphique
@@ -96,22 +98,27 @@ document.addEventListener("DOMContentLoaded", async () => {
         const selectedProviders = Array.from(document.querySelectorAll(".providerCheckbox:checked"))
                                        .map(checkbox => checkbox.value);
 
+        const { counts, otherDomains } = countEmailProviders(emails);
+
         // Filtrage des emails selon la recherche et les checkboxes cochées
         const filteredEmails = emails.filter(email => {
             const domain = email.split("@")[1];
+            if (selectedProviders.includes("Other") && otherDomains.includes(domain)) {
+                return email.toLowerCase().includes(searchTerm);
+            }
             return email.toLowerCase().includes(searchTerm) && selectedProviders.includes(domain);
         });
 
         displayEmails(filteredEmails);
-        createEmailChart(countEmailProviders(filteredEmails)); // Mettre à jour le graphique
+        createEmailChart(countEmailProviders(filteredEmails).counts); // Mettre à jour le graphique
     }
 
     // Générer les checkboxes
-    createProviderCheckboxes(getEmailProviders(emails));
+    createProviderCheckboxes(emails);
 
     // Affichage initial
     displayEmails(emails);
-    createEmailChart(countEmailProviders(emails));
+    createEmailChart(countEmailProviders(emails).counts);
 
     // Événements pour la recherche et les filtres
     searchBar.addEventListener("input", updateView);
