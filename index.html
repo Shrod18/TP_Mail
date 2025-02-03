@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Recherche d'Emails</title>
+    <script defer src="app.js"></script>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <input
+      type="text"
+      id="searchBar"
+      placeholder="Rechercher une adresse email..."
+    />
+    <div class="container">
+      <div>
+        <div>
+          <h3>Filtrer par serveur de messagerie :</h3>
+          <div id="filterContainer"></div>
+        </div>
+        <h2>Répartition des serveurs mail</h2>
+        <canvas id="emailChart"></canvas>
+      </div>
+      <div>
+        <h2>Liste des mails</h2>
+        <ul id="emailList"></ul>
+      </div>
+    </div>
+  </body>
+</html>
