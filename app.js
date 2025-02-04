@@ -15,7 +15,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     let otherCount = 0;
 
     emails.forEach((email) => {
-      const domain = email.split("@")[1];
+      const parts = email.split("@");
+      if (parts.length !== 2 || !parts[1]) return;
+
+      const domain = parts[1].toLowerCase();
       providerCounts[domain] = (providerCounts[domain] || 0) + 1;
     });
 
@@ -41,14 +44,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const { counts, otherDomains } = countEmailProviders(emailData);
 
+    const addedProviders = new Set();
+
     Object.keys(counts).forEach((provider) => {
-      const label = document.createElement("label");
-      label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="${provider}" checked> ${provider}`;
-      filterContainer.appendChild(label);
-      filterContainer.appendChild(document.createElement("br"));
+      if (!addedProviders.has(provider)) {
+        addedProviders.add(provider);
+        const label = document.createElement("label");
+        label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="${provider}" checked> ${provider}`;
+        filterContainer.appendChild(label);
+        filterContainer.appendChild(document.createElement("br"));
+      }
     });
 
-    if (otherDomains.length > 0) {
+    if (otherDomains.length > 0 && !addedProviders.has("Other")) {
+      addedProviders.add("Other");
       const label = document.createElement("label");
       label.innerHTML = `<input type="checkbox" class="providerCheckbox" value="Other" checked> Other`;
       filterContainer.appendChild(label);
