@@ -94,8 +94,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               "#36a2eb",
               "#ffcd56",
               "#4bc0c0",
-              "#9966ff",
-              "#8d6e63",
             ],
           },
         ],
